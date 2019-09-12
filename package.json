@@ -5,12 +5,22 @@
     "steptest": "bin/steptest.js"
   },
   "scripts": {
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "test": "mocha --recurisve test"
   },
   "devDependencies": {
-    "aws-cdk": "^1.8.0"
+    "@aws-cdk/assert": "^1.8.0",
+    "aws-cdk": "^1.8.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0"
   },
   "dependencies": {
-    "@aws-cdk/core": "^1.8.0"
+    "@aws-cdk/aws-lambda": "^1.8.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.8.0",
+    "@aws-cdk/aws-s3-notifications": "^1.8.0",
+    "@aws-cdk/aws-stepfunctions": "^1.8.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.8.0",
+    "@aws-cdk/core": "^1.8.0",
+    "aws-sdk": "^2.527.0"
   }
 }
