@@ -1,5 +1,3 @@
-module.exports = {
-  handler: () => {
-    throw new Error("NOT IMPLEMENTED");
-  }
+module.exports.handler = async (event, _context) => {
+  throw new Error("NOT IMPLEMENTED");
 };

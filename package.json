@@ -18,9 +18,11 @@
     "@aws-cdk/aws-lambda": "^1.8.0",
     "@aws-cdk/aws-lambda-event-sources": "^1.8.0",
     "@aws-cdk/aws-s3-notifications": "^1.8.0",
+    "@aws-cdk/aws-sns": "^1.8.0",
     "@aws-cdk/aws-stepfunctions": "^1.8.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.8.0",
     "@aws-cdk/core": "^1.8.0",
-    "aws-sdk": "^2.527.0"
+    "aws-sdk": "^2.527.0",
+    "jimp": "^0.8.1"
   }
 }
