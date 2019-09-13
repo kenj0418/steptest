@@ -31,8 +31,8 @@ const resizeImage = async (
   destKey,
   targetWidth
 ) => {
-  const image = getImage(sourceBucket, sourceKey);
-  if (!image) {
+  const image = await getImage(sourceBucket, sourceKey);
+  if (!image || !image.bitmap) {
     return 0;
   }
 
@@ -43,7 +43,7 @@ const resizeImage = async (
 };
 
 const getThumbnailKey = sourceKey =>
-  sourceKey.replaceAll(/^images\//, "thumbnails/");
+  sourceKey.replace(/^images\//, "thumbnails/");
 
 module.exports.handler = async (event, _context) => {
   if (!event || !event.Bucket) {
