@@ -56,6 +56,16 @@ describe("SteptestStack", () => {
     );
   });
 
+  xit("x", async () => {
+    const Jimp = require("jimp");
+    const img = await Jimp.read("/Users/Ken/Downloads/cic.png");
+    console.log(JSON.stringify(Object.keys(img), null, 2));
+    console.log(JSON.stringify(Object.keys(img.bitmap), null, 2));
+    console.log(JSON.stringify(img.bitmap.width, null, 2));
+    const imgSmall = await img.resize(200, 200);
+    console.log(JSON.stringify(Object.keys(imgSmall), null, 2));
+  });
+
   // - Step function - checks the data from the first lambda
   // - upload to s3 triggers the step function
 });

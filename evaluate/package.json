@@ -1,0 +1,15 @@
+{
+  "name": "steptest-evaluate",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "mocha --recurisve test"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.527.0",
+    "jimp": "^0.8.1"
+  }
+}

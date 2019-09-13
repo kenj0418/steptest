@@ -27,23 +27,21 @@ class SteptestStack extends cdk.Stack {
       functionName: "evalute-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("./evaluate"),
-      timeout: cdk.Duration.seconds(60)
+      code: lambda.Code.asset("../evaluate")
     });
 
     this.processLambda = new lambda.Function(this, "Process", {
       functionName: "process-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("./process"),
-      timeout: cdk.Duration.seconds(60)
+      code: lambda.Code.asset("../process")
     });
 
     this.copyLambda = new lambda.Function(this, "Copy", {
       functionName: "copy-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("./process"),
+      code: lambda.Code.asset("../process"),
       timeout: cdk.Duration.seconds(60)
     });
 
@@ -80,7 +78,7 @@ class SteptestStack extends cdk.Stack {
       functionName: "start-image-step",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("./startExec"),
+      code: lambda.Code.asset("../startExec"),
       environment: {
         STEP_FUNCTION_ARN: this.imageStepFunc.stateMachineArn
       }
