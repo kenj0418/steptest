@@ -66,7 +66,7 @@ module.exports.handler = async (event, _context) => {
       stateMachineArn: stepArn,
       input: JSON.stringify(transformSNSEvent(event))
     };
-    const data = await stepFunc.startExecution(params).promise();
+    const data = await stepFunc.startExecution(params);
     console.info(`started execution arn: ${data.executionArn}`);
   } catch (ex) {
     console.error("Error launching step function", ex);

@@ -17,9 +17,7 @@ module.exports.handler = async (event, _context) => {
   if (!event || !event.Bucket) {
     console.info("Event", JSON.stringify(event));
     throw new Error("Bucket is missing from event");
-  }
-
-  if (!event.Key) {
+  } else if (!event.Key) {
     console.info("Event", JSON.stringify(event));
     throw new Error("Key is missing from event");
   }
@@ -30,5 +28,5 @@ module.exports.handler = async (event, _context) => {
     event.Bucket,
     getThumbnailKey(event.Key)
   );
-  return event;
+  //   return event;
 };

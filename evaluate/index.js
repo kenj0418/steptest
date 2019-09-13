@@ -16,7 +16,7 @@ const getImage = async (bucket, key) => {
 
 const getImageWidth = async (bucket, key) => {
   const image = await getImage(bucket, key);
-  if (!image | !image.bitmap) {
+  if (!image || !image.bitmap) {
     console.warn("Could not read image", image);
     return 0;
   }
@@ -29,20 +29,16 @@ module.exports.handler = async (event, _context) => {
     console.info("Event", JSON.stringify(event));
     throw new Error("Bucket is missing from event");
   }
-
   if (!event.Key) {
     console.info("Event", JSON.stringify(event));
     throw new Error("Key is missing from event");
   }
-
   if (!event.Key.startsWith("images/")) {
     console.info(
       `s3://${event.Bucket}/${event.Key} does not match target prefix: images/.  Not processing`
     );
     return { ...event, imageWidth: 0 };
   }
-
   const imageWidth = await getImageWidth(event.Bucket, event.Key);
-
   return { Bucket: event.Bucket, Key: event.Key, imageWidth };
 };

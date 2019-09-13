@@ -10,7 +10,7 @@ const getImage = async (bucket, key) => {
     return await Jimp.read(s3Response.Body);
   } catch (ex) {
     console.warn(`Unable to read image s3://${bucket}/${key}`, ex);
-    return null;
+    throw ex;
   }
 };
 
@@ -36,7 +36,9 @@ const resizeImage = async (
     return 0;
   }
 
-  const targetHeight = (image.bitmap.height * targetWidth) / image.bitmap.width;
+  const targetHeight = Math.floor(
+    (image.bitmap.height * targetWidth) / image.bitmap.width
+  );
   const thumbnail = await image.resize(targetWidth, targetHeight);
   const thumbnailBuffer = await thumbnail.getBufferAsync(Jimp.AUTO);
   await putImage(destBucket, destKey, thumbnailBuffer);
