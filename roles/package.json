@@ -1,0 +1,17 @@
+{
+  "name": "roles",
+  "version": "0.1.0",
+  "bin": {
+    "roles": "bin/roles.js"
+  },
+  "scripts": {
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "aws-cdk": "^1.8.0"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-iam": "^1.8.0",
+    "@aws-cdk/core": "^1.8.0"
+  }
+}

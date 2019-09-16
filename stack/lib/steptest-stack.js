@@ -8,6 +8,14 @@ const sqs = require("@aws-cdk/aws-sqs");
 const sns = require("@aws-cdk/aws-sns");
 const s3Notifications = require("@aws-cdk/aws-s3-notifications");
 
+const getLambdaAsset = path => {
+  if (process.env.MOCK_LAMBDA_ASSET) {
+    return lambda.Code.asset("../stub");
+  } else {
+    return lambda.Code.asset(path);
+  }
+};
+
 class SteptestStack extends cdk.Stack {
   /**
    *
@@ -27,7 +35,7 @@ class SteptestStack extends cdk.Stack {
       functionName: "evalute-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("../evaluate"),
+      code: getLambdaAsset("../evaluate"),
       timeout: cdk.Duration.seconds(60)
     });
 
@@ -35,7 +43,7 @@ class SteptestStack extends cdk.Stack {
       functionName: "process-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("../process"),
+      code: getLambdaAsset("../process"),
       timeout: cdk.Duration.seconds(60)
     });
 
@@ -43,7 +51,7 @@ class SteptestStack extends cdk.Stack {
       functionName: "copy-image",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("../copy"),
+      code: getLambdaAsset("../copy"),
       timeout: cdk.Duration.seconds(60)
     });
 
@@ -80,14 +88,14 @@ class SteptestStack extends cdk.Stack {
       functionName: "start-image-step",
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
-      code: lambda.Code.asset("../startExec"),
+      code: getLambdaAsset("../startExec"),
       environment: {
         STEP_FUNCTION_ARN: this.imageStepFunc.stateMachineArn
       },
       timeout: cdk.Duration.seconds(60)
     });
 
-    this.imageStepFunc.grantStartExecution(this.startStepFuncLambda.role);
+    // this.imageStepFunc.grantStartExecution(this.startStepFuncLambda.role);
 
     // there is currently a bug with the addEventSource code in the CDK https://github.com/aws/aws-cdk/issues/3318
     // this.startStepFuncLambda.addEventSource(
