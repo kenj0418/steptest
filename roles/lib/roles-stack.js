@@ -1,6 +1,22 @@
 const cdk = require("@aws-cdk/core");
 const iam = require("@aws-cdk/aws-iam");
 
+class LambdaRoleWithBoundary extends iam.Role {
+  constructor(scope, id, roleName, managedPolcies, inlinePolicies) {
+    super(scope, id, {
+      roleName,
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+      permissionsBoundary: iam.ManagedPolicy.fromManagedPolicyName(
+        scope,
+        "TestBoundary-" + id,
+        "test-boundary"
+      ),
+      managedPolicies: managedPolcies ? managedPolcies : [],
+      inlinePolicies: inlinePolicies ? inlinePolicies : {}
+    });
+  }
+}
+
 class RolesStack extends cdk.Stack {
   /**
    *
@@ -11,22 +27,16 @@ class RolesStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
-    const permissionsBoundary = iam.ManagedPolicy.fromManagedPolicyName(
+    this.startExecLambdaRole = new LambdaRoleWithBoundary(
       this,
-      "TestBondary",
-      "test-boundary"
-    );
-
-    const basicLambdaExecutionPolicy = iam.ManagedPolicy.fromAwsManagedPolicyName(
-      "service-role/AWSLambdaBasicExecutionRole"
-    );
-
-    const role = new iam.Role(this, "LambdaRole1", {
-      roleName: "test1",
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
-      permissionsBoundary,
-      managedPolicies: [basicLambdaExecutionPolicy],
-      inlinePolicies: {
+      "LambdaStartExecLambdaRole",
+      "lambda-start-exec-role",
+      [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AWSLambdaBasicExecutionRole"
+        )
+      ],
+      {
         StepExec: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
@@ -40,7 +50,20 @@ class RolesStack extends cdk.Stack {
               actions: ["states:StartExecution"]
             })
           ]
-        }),
+        })
+      }
+    );
+
+    this.LambdaImageRole = new LambdaRoleWithBoundary(
+      this,
+      "LambdaImageRole",
+      "lambda-image-role",
+      [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AWSLambdaBasicExecutionRole"
+        )
+      ],
+      {
         S3Read: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
@@ -57,9 +80,7 @@ class RolesStack extends cdk.Stack {
           ]
         })
       }
-    });
-
-    //todo change step function arn to use variables for account# and segment?
+    );
   }
 }
 

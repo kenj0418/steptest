@@ -4,7 +4,7 @@ const lambda = require("@aws-cdk/aws-lambda");
 const step = require("@aws-cdk/aws-stepfunctions");
 const tasks = require("@aws-cdk/aws-stepfunctions-tasks");
 const lambdaEventSources = require("@aws-cdk/aws-lambda-event-sources");
-const sqs = require("@aws-cdk/aws-sqs");
+const iam = require("@aws-cdk/aws-iam");
 const sns = require("@aws-cdk/aws-sns");
 const s3Notifications = require("@aws-cdk/aws-s3-notifications");
 
@@ -36,7 +36,13 @@ class SteptestStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
       code: getLambdaAsset("../evaluate"),
-      timeout: cdk.Duration.seconds(60)
+      timeout: cdk.Duration.seconds(60),
+      role: iam.Role.fromRoleArn(
+        this,
+        "EvaluateRole",
+        "arn:aws:iam::" + cdk.Aws.ACCOUNT_ID + ":role/lambda-image-role",
+        { mutable: false }
+      )
     });
 
     this.processLambda = new lambda.Function(this, "Process", {
@@ -44,7 +50,13 @@ class SteptestStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
       code: getLambdaAsset("../process"),
-      timeout: cdk.Duration.seconds(60)
+      timeout: cdk.Duration.seconds(60),
+      role: iam.Role.fromRoleArn(
+        this,
+        "ProcessRole",
+        "arn:aws:iam::" + cdk.Aws.ACCOUNT_ID + ":role/lambda-image-role",
+        { mutable: false }
+      )
     });
 
     this.copyLambda = new lambda.Function(this, "Copy", {
@@ -52,7 +64,13 @@ class SteptestStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
       handler: "index.handler",
       code: getLambdaAsset("../copy"),
-      timeout: cdk.Duration.seconds(60)
+      timeout: cdk.Duration.seconds(60),
+      role: iam.Role.fromRoleArn(
+        this,
+        "CopyRole",
+        "arn:aws:iam::" + cdk.Aws.ACCOUNT_ID + ":role/lambda-image-role",
+        { mutable: false }
+      )
     });
 
     const evaluateTask = new step.Task(this, "Evaluate Image", {
@@ -92,10 +110,14 @@ class SteptestStack extends cdk.Stack {
       environment: {
         STEP_FUNCTION_ARN: this.imageStepFunc.stateMachineArn
       },
-      timeout: cdk.Duration.seconds(60)
+      timeout: cdk.Duration.seconds(60),
+      role: iam.Role.fromRoleArn(
+        this,
+        "startStepRole",
+        "arn:aws:iam::" + cdk.Aws.ACCOUNT_ID + ":role/lambda-start-exec-role",
+        { mutable: false }
+      )
     });
-
-    // this.imageStepFunc.grantStartExecution(this.startStepFuncLambda.role);
 
     // there is currently a bug with the addEventSource code in the CDK https://github.com/aws/aws-cdk/issues/3318
     // this.startStepFuncLambda.addEventSource(
