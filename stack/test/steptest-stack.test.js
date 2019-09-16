@@ -17,6 +17,11 @@ describe("SteptestStack", function() {
     expect(stack).to(
       haveResource("AWS::S3::Bucket", { BucketName: "kjjtest1" })
     );
+    expect(stack).to(
+      haveResource("AWS::S3::BucketPolicy", {
+        Bucket: stack.resolve(stack.s3Bucket.bucketName)
+      })
+    );
   });
 
   it("stack has step function and lambdas", () => {
@@ -46,37 +51,37 @@ describe("SteptestStack", function() {
 
     expect(stack).to(
       haveResource("AWS::Lambda::Function", {
-        FunctionName: "start-image-step"
+        FunctionName: "start-image-step",
+        Environment: {
+          Variables: {
+            STEP_FUNCTION_ARN: stack.resolve(
+              stack.imageStepFunc.stateMachineArn
+            )
+          }
+        }
       })
     );
 
-    // ideally we'd also check that the ARN is being passed in to the lambda, but I could get that to work.
-    // stack.imageStepFunc.stateMachineArn was unresoled when the test were running
-
     expect(stack).to(haveResource("AWS::SNS::Topic"));
 
-    //todo check that there is a event notification for the topic from the S3
-    // this.s3Bucket.addEventNotification(
-    //   s3.EventType.OBJECT_CREATED_PUT,
-    //   new s3Notifications.SnsDestination(this.s3ObjCreationTopic)
-    // );
+    expect(stack).to(
+      haveResource("Custom::S3BucketNotifications", {
+        NotificationConfiguration: {
+          TopicConfigurations: [
+            {
+              Events: ["s3:ObjectCreated:Put"],
+              TopicArn: stack.resolve(stack.s3ObjCreationTopic.topicArn)
+            }
+          ]
+        }
+      })
+    );
 
-    //todo check that there is an event source for the lambda from the topic
-    // this.startStepFuncLambda.addEventSource(
-    //   new lambdaEventSources.SnsEventSource(this.s3ObjCreationTopic)
-    // );
-
-    //todo check that the lambda can start execution on the stack
-    // this.imageStepFunc.grantStartExecution(this.startStepFuncLambda.role);
-  });
-
-  xit("lambdas can read and write from s3 bucket", () => {
-    const stack = new SteptestStack();
-
-    //todo check that lambdas can read and write from s3 bucket
-    // this.s3Bucket.grantReadWrite(this.startStepFuncLambda);
-    // this.s3Bucket.grantReadWrite(this.evaluateLambda);
-    // this.s3Bucket.grantReadWrite(this.processLambda);
-    // this.s3Bucket.grantReadWrite(this.copyLambda);
+    expect(stack).to(
+      haveResource("AWS::Lambda::Function", {
+        Description:
+          'AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)'
+      })
+    );
   });
 });

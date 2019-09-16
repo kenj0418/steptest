@@ -1,21 +1,66 @@
 const cdk = require("@aws-cdk/core");
 const iam = require("@aws-cdk/aws-iam");
 
-class LambdaRoleWithBoundary extends iam.Role {
-  constructor(scope, id, roleName, managedPolcies, inlinePolicies) {
+class RoleWithBoundary extends iam.Role {
+  constructor(scope, id, roleName, assumedBy, managedPolicies, inlinePolicies) {
     super(scope, id, {
       roleName,
-      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
+      assumedBy,
       permissionsBoundary: iam.ManagedPolicy.fromManagedPolicyName(
         scope,
         "TestBoundary-" + id,
         "test-boundary"
       ),
-      managedPolicies: managedPolcies ? managedPolcies : [],
+      managedPolicies: managedPolicies ? managedPolicies : [],
       inlinePolicies: inlinePolicies ? inlinePolicies : {}
     });
   }
 }
+
+class LambdaRole extends RoleWithBoundary {
+  constructor(scope, id, roleName, managedPolicies, inlinePolicies) {
+    super(
+      scope,
+      id,
+      roleName,
+      new iam.ServicePrincipal("lambda.amazonaws.com"),
+      managedPolicies,
+      inlinePolicies
+    );
+  }
+}
+
+class StepFunctionRole extends RoleWithBoundary {
+  constructor(scope, id, roleName, managedPolicies, inlinePolicies) {
+    super(
+      scope,
+      id,
+      roleName,
+      new iam.ServicePrincipal("states.amazonaws.com"),
+      managedPolicies,
+      inlinePolicies
+    );
+  }
+}
+
+const lambdaArn = lambdaName =>
+  "arn:" +
+  cdk.Aws.PARTITION +
+  ":lambda:*:" +
+  cdk.Aws.ACCOUNT_ID +
+  ":function:" +
+  lambdaName;
+
+const stepFunctionArn = stepFunctionName =>
+  "arn:" +
+  cdk.Aws.PARTITION +
+  ":states:*:" +
+  cdk.Aws.ACCOUNT_ID +
+  ":stateMachine:" +
+  stepFunctionName;
+
+const s3BucketArn = bucketName =>
+  "arn:" + cdk.Aws.PARTITION + ":s3:::" + bucketName;
 
 class RolesStack extends cdk.Stack {
   /**
@@ -27,7 +72,7 @@ class RolesStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
-    this.startExecLambdaRole = new LambdaRoleWithBoundary(
+    this.startExecLambdaRole = new LambdaRole(
       this,
       "LambdaStartExecLambdaRole",
       "lambda-start-exec-role",
@@ -40,13 +85,7 @@ class RolesStack extends cdk.Stack {
         StepExec: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              resources: [
-                "arn:" +
-                  cdk.Aws.PARTITION +
-                  ":states:*:" +
-                  cdk.Aws.ACCOUNT_ID +
-                  ":stateMachine:image-processing-step"
-              ],
+              resources: [stepFunctionArn("image-processing-step")],
               actions: ["states:StartExecution"]
             })
           ]
@@ -54,7 +93,7 @@ class RolesStack extends cdk.Stack {
       }
     );
 
-    this.LambdaImageRole = new LambdaRoleWithBoundary(
+    this.lambdaImageRole = new LambdaRole(
       this,
       "LambdaImageRole",
       "lambda-image-role",
@@ -68,7 +107,7 @@ class RolesStack extends cdk.Stack {
           statements: [
             new iam.PolicyStatement({
               sid: "S3Read",
-              resources: ["arn:" + cdk.Aws.PARTITION + ":s3:::kjjtest1"],
+              resources: [s3BucketArn("kjjtest1")],
               actions: [
                 "s3:GetObject",
                 "s3:ListBucket",
@@ -76,6 +115,28 @@ class RolesStack extends cdk.Stack {
                 "s3:PutObject",
                 "s3:AbortMultipartUpload"
               ]
+            })
+          ]
+        })
+      }
+    );
+
+    this.stepFunctionRole = new StepFunctionRole(
+      this,
+      "StepFunctionRole",
+      "image-step-function-role",
+      [],
+      {
+        LambdaInvoke: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              sid: "LambdaInvoke",
+              resources: [
+                lambdaArn("evaluate-image"),
+                lambdaArn("process-image"),
+                lambdaArn("copy-image")
+              ],
+              actions: ["lambda:InvokeFunction"]
             })
           ]
         })
