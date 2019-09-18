@@ -1,0 +1,14 @@
+version: 0.2
+
+env:
+  variables:
+    TEST: "ThisIsATest"
+
+phases:
+  install:
+    commands:
+      - echo Entered the install phase...
+  build:
+    commands:
+      - echo Entered the build phase...
+      - echo Build started on `date`
