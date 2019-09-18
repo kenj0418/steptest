@@ -142,6 +142,25 @@ class RolesStack extends cdk.Stack {
         })
       }
     );
+
+    new cdk.CfnOutput(this, "startExecLambdaRoleOutput", {
+      exportName: "ImageStepFunctionLambdaRole",
+      description: "ARN for role for lambda to start step function execution",
+      value: this.startExecLambdaRole.roleArn
+    });
+
+    new cdk.CfnOutput(this, "imageLambdaRoleOutput", {
+      exportName: "ImageLambdaRole",
+      description:
+        "ARN for role for lambda that are part of the image step function",
+      value: this.lambdaImageRole.roleArn
+    });
+
+    new cdk.CfnOutput(this, "stepFunctionRoleOutput", {
+      exportName: "ImageStepFunctionRole",
+      description: "ARN for role for image step function",
+      value: this.stepFunctionRole.roleArn
+    });
   }
 }
 
