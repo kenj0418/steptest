@@ -1,0 +1,173 @@
+Resources:
+  LambdaStartExecLambdaRole0DA1F0B5:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      PermissionsBoundary:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":iam::"
+            - Ref: AWS::AccountId
+            - :policy/test-boundary
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action: states:StartExecution
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":states:*:"
+                      - Ref: AWS::AccountId
+                      - :stateMachine:image-processing-step
+            Version: "2012-10-17"
+          PolicyName: StepExec
+      RoleName: lambda-start-exec-role
+    Metadata:
+      aws:cdk:path: RolesStack/LambdaStartExecLambdaRole/Resource
+  LambdaImageRole595355F1:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      PermissionsBoundary:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":iam::"
+            - Ref: AWS::AccountId
+            - :policy/test-boundary
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                  - s3:PutObject
+                  - s3:AbortMultipartUpload
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - :s3:::kjjtest1
+            Version: "2012-10-17"
+          PolicyName: S3Read
+      RoleName: lambda-image-role
+    Metadata:
+      aws:cdk:path: RolesStack/LambdaImageRole/Resource
+  StepFunctionRoleC4BAB6F8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                Fn::Join:
+                  - ""
+                  - - states.
+                    - Ref: AWS::Region
+                    - .amazonaws.com
+        Version: "2012-10-17"
+      PermissionsBoundary:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":iam::"
+            - Ref: AWS::AccountId
+            - :policy/test-boundary
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action: lambda:InvokeFunction
+                Effect: Allow
+                Resource:
+                  - Fn::Join:
+                      - ""
+                      - - "arn:"
+                        - Ref: AWS::Partition
+                        - ":lambda:*:"
+                        - Ref: AWS::AccountId
+                        - :function:evaluate-image
+                  - Fn::Join:
+                      - ""
+                      - - "arn:"
+                        - Ref: AWS::Partition
+                        - ":lambda:*:"
+                        - Ref: AWS::AccountId
+                        - :function:process-image
+                  - Fn::Join:
+                      - ""
+                      - - "arn:"
+                        - Ref: AWS::Partition
+                        - ":lambda:*:"
+                        - Ref: AWS::AccountId
+                        - :function:copy-image
+            Version: "2012-10-17"
+          PolicyName: LambdaInvoke
+      RoleName: image-step-function-role
+    Metadata:
+      aws:cdk:path: RolesStack/StepFunctionRole/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.8.0,@aws-cdk/aws-iam=1.8.0,@aws-cdk/core=1.8.0,@aws-cdk/cx-api=1.8.0,@aws-cdk/region-info=1.8.0,jsii-runtime=node.js/v10.16.3
+Outputs:
+  startExecLambdaRoleOutput:
+    Description: ARN for role for lambda to start step function execution
+    Value:
+      Fn::GetAtt:
+        - LambdaStartExecLambdaRole0DA1F0B5
+        - Arn
+    Export:
+      Name: ImageStepFunctionLambdaRole
+  imageLambdaRoleOutput:
+    Description: ARN for role for lambda that are part of the image step function
+    Value:
+      Fn::GetAtt:
+        - LambdaImageRole595355F1
+        - Arn
+    Export:
+      Name: ImageLambdaRole
+  stepFunctionRoleOutput:
+    Description: ARN for role for image step function
+    Value:
+      Fn::GetAtt:
+        - StepFunctionRoleC4BAB6F8
+        - Arn
+    Export:
+      Name: ImageStepFunctionRole
+
