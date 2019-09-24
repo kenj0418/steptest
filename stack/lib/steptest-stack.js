@@ -17,21 +17,26 @@ const getLambdaAsset = path => {
 };
 
 let namedRoleId = 1;
-// const getNamedRole = (stack, roleName) =>
-//   iam.Role.fromRoleArn(
-//     stack,
-//     roleName + namedRoleId++,
-//     "arn:aws:iam::" + cdk.Aws.ACCOUNT_ID + ":role/" + roleName,
-//     { mutable: false }
-//   );
-
-const getRoleFromImport = (stack, importName) =>
+const getNamedRole = (stack, roleName) =>
   iam.Role.fromRoleArn(
     stack,
-    importName + namedRoleId++,
-    cdk.Fn.importValue(importName),
+    roleName + namedRoleId++,
+    "arn:aws:iam::" +
+      cdk.Aws.ACCOUNT_ID +
+      ":role/" +
+      roleName +
+      "-" +
+      cdk.Aws.REGION,
     { mutable: false }
   );
+
+// const getRoleFromImport = (stack, importName) =>
+//   iam.Role.fromRoleArn(
+//     stack,
+//     importName + namedRoleId++,
+//     cdk.Fn.importValue(importName),
+//     { mutable: false }
+//   );
 
 class SteptestStack extends cdk.Stack {
   /**
@@ -44,12 +49,11 @@ class SteptestStack extends cdk.Stack {
     super(scope, id, props);
 
     this.s3Bucket = new s3.Bucket(this, "StepFunctionTest", {
-      bucketName: "kjjtest1",
+      bucketName: "kjjtest1-" + cdk.Aws.REGION,
       removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
-    const imageLambdaRole = getRoleFromImport(this, "ImageLambdaRole");
-
+    const imageLambdaRole = getNamedRole(this, "lambda-image-role");
     this.evaluateLambda = new lambda.Function(this, "Evaluate", {
       functionName: "evalute-image",
       runtime: lambda.Runtime.NODEJS_10_X,
@@ -104,7 +108,7 @@ class SteptestStack extends cdk.Stack {
     this.imageStepFunc = new step.StateMachine(this, "ImageStepFunction", {
       stateMachineName: "image-processing-step",
       definition: imageStepDefinition,
-      role: getRoleFromImport(this, "ImageStepFunctionRole")
+      role: getNamedRole(this, "image-step-function-role")
     });
 
     this.startStepFuncLambda = new lambda.Function(this, "StartStepFunc", {
@@ -116,7 +120,7 @@ class SteptestStack extends cdk.Stack {
         STEP_FUNCTION_ARN: this.imageStepFunc.stateMachineArn
       },
       timeout: cdk.Duration.seconds(60),
-      role: getRoleFromImport(this, "ImageStepFunctionLambdaRole")
+      role: getNamedRole(this, "lambda-start-exec-role")
     });
 
     // there is currently a bug with the addEventSource code in the CDK https://github.com/aws/aws-cdk/issues/3318

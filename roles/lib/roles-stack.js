@@ -75,7 +75,7 @@ class RolesStack extends cdk.Stack {
     this.startExecLambdaRole = new LambdaRole(
       this,
       "LambdaStartExecLambdaRole",
-      "lambda-start-exec-role",
+      "lambda-start-exec-role-" + cdk.Aws.REGION,
       [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AWSLambdaBasicExecutionRole"
@@ -96,7 +96,7 @@ class RolesStack extends cdk.Stack {
     this.lambdaImageRole = new LambdaRole(
       this,
       "LambdaImageRole",
-      "lambda-image-role",
+      "lambda-image-role-" + cdk.Aws.REGION,
       [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AWSLambdaBasicExecutionRole"
@@ -106,8 +106,8 @@ class RolesStack extends cdk.Stack {
         S3Read: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({
-              sid: "S3Read",
-              resources: [s3BucketArn("kjjtest1")],
+              sid: "S3Read" + cdk.Aws.REGION,
+              resources: [s3BucketArn("kjjtest1-*")],
               actions: [
                 "s3:GetObject",
                 "s3:ListBucket",
@@ -124,7 +124,7 @@ class RolesStack extends cdk.Stack {
     this.stepFunctionRole = new StepFunctionRole(
       this,
       "StepFunctionRole",
-      "image-step-function-role",
+      "image-step-function-role-" + cdk.Aws.REGION,
       [],
       {
         LambdaInvoke: new iam.PolicyDocument({
@@ -142,25 +142,6 @@ class RolesStack extends cdk.Stack {
         })
       }
     );
-
-    new cdk.CfnOutput(this, "startExecLambdaRoleOutput", {
-      exportName: "ImageStepFunctionLambdaRole",
-      description: "ARN for role for lambda to start step function execution",
-      value: this.startExecLambdaRole.roleArn
-    });
-
-    new cdk.CfnOutput(this, "imageLambdaRoleOutput", {
-      exportName: "ImageLambdaRole",
-      description:
-        "ARN for role for lambda that are part of the image step function",
-      value: this.lambdaImageRole.roleArn
-    });
-
-    new cdk.CfnOutput(this, "stepFunctionRoleOutput", {
-      exportName: "ImageStepFunctionRole",
-      description: "ARN for role for image step function",
-      value: this.stepFunctionRole.roleArn
-    });
   }
 }
 
